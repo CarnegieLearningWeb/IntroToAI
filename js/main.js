@@ -91,8 +91,8 @@ var spaces;
 //Make a move. The parameter "space" is the space that was clicked on
 function move(space) {
     if (space.value == '') {                //check to see that the cell is empty first
-      space.value = 'X';                  //set the cell to X (in the visible board)
-      //create an array of the current board
+    	space.value = 'X';                  //set the cell to X (in the visible board)
+    	//create an array of the current board
         var board = new Array(spaces[0].value,spaces[1].value,spaces[2].value,
                               spaces[3].value,spaces[4].value,spaces[5].value,
                               spaces[6].value,spaces[7].value,spaces[8].value);
@@ -104,10 +104,10 @@ function move(space) {
             spaces[computerMove].value = 'O';          //set O on screen
             board[computerMove] = 'O';                //and in the board array
             winningPattern = findWin(board);          //check if the computer won
-          colorBoard(board);                        //and draw the board again
+        	colorBoard(board);                        //and draw the board again
         }
         if (winningPattern)
-          updateStats(winningPattern);
+        	updateStats(winningPattern);
     }
 }
 
@@ -124,22 +124,6 @@ function takeComputerTurn(board) {
 
 
 //makeSpaces makes the array of spaces that represent the board
-//The spaces in the board are represented by c1 through c9 like this:
-//
-//  ________________
-//  | c0 | c1 | c2 |
-//  |----|----|----|
-//  | c3 | c4 | c5 |
-//  |----|----|----|
-//  | c6 | c7 | c8 |
-//  ----------------
-
-//The array called spaces stores them like this:
-//    --------------------------------------------
-//   | c0 | c1 | c2 | c3 | c4 | c5 | c6 | c7 | c8 |
-//    --------------------------------------------
-//
-//So spaces[2] is c2
 //
 function makeSpaces() {
     var b = document.playspace;
@@ -209,7 +193,7 @@ function findPattern(board,topleft,topcenter,topright,middleleft,middlecenter,mi
     
 //count the number of open spaces
 function countOpenSpaces(board) {
-  var numOpenSpaces = 0;
+	var numOpenSpaces = 0;
     for (var i=0;i<9;i++) {
          if (board[i] == '')
               numOpenSpaces = numOpenSpaces+1;
@@ -287,11 +271,11 @@ function getSideMove(board) {
 // This will force X to take the opposite side on the next move (rather than a corner)
 function getOppositeCornerBlock(board) {
    var moveToTake = -1;
-  if (findPattern(board,'X','*','*','*','O','*','*','*','X'))
-     moveToTake = getSideMove(board);
-  else if (findPattern(board,'*','*','X','*','O','*','X','*','*'))
-     moveToTake = getSideMove(board);
-  return moveToTake;
+	if (findPattern(board,'X','*','*','*','O','*','*','*','X'))
+	   moveToTake = getSideMove(board);
+	else if (findPattern(board,'*','*','X','*','O','*','X','*','*'))
+	   moveToTake = getSideMove(board);
+	return moveToTake;
 }
 
 //if X has a corner and a side that is not in the corner's row or column, then O
@@ -354,6 +338,7 @@ function getBlockForCorners(board) {
 
 //getWinningMove returns a move that will win the game for the specified player (X or O)
 //if no such move exists, then return -1
+//There are 8 ways to win: 3 rows, 3 columns and 2 diagonals
 function getWinningMove(board,player) {
    var move = -1;
    move = checkForThirdInARow(0,1,2,board,player); //check for win in top row
@@ -401,15 +386,15 @@ function checkForThirdInARow(first,second,third,board,player) {
 //If the game is a tie, it returns an array of 9 asterisks
 //If the game is not over, it returns false
 function findWin(board) {
-  var winPattern;
-  winPattern = winInRow(board);
-  if (!winPattern)
-    winPattern = winInColumn(board);
-  if (!winPattern)
-    winPattern = winDiagonal(board);
-  if (!winPattern && countOpenSpaces(board) == 0) //if there are no open spaces, the game is a tie
-      winPattern = new Array('*','*','*','*','*','*','*','*','*');
-  return winPattern;
+	var winPattern;
+	winPattern = winInRow(board);
+	if (!winPattern)
+		winPattern = winInColumn(board);
+	if (!winPattern)
+		winPattern = winDiagonal(board);
+	if (!winPattern && countOpenSpaces(board) == 0) //if there are no open spaces, the game is a tie
+	    winPattern = new Array('*','*','*','*','*','*','*','*','*');
+	return winPattern;
 }
 
 
@@ -433,7 +418,7 @@ function winInRow(board) {
    if ((board[0] != '') && 
        (board[0] == board[1]) &&
        (board[0] == board[2])) //first row
-        return new Array(board[0],board[0],board[0],'','','','','','');
+       	return new Array(board[0],board[0],board[0],'','','','','','');
    else if ((board[3] != '') && 
             (board[3] == board[4]) &&
             (board[3] == board[5])) //second row
@@ -443,25 +428,25 @@ function winInRow(board) {
             (board[6] == board[8])) //third row
         return new Array('','','','','','',board[6],board[6],board[6]);
    else
-      return false;
+    	return false;
 }
 
 //winInColumn checks for a column win
 //If there is a winning column, it returns an array with either X or O
 //in the winning cells and blanks in the other cells
 function winInColumn(board) {
-  if ((board[0] != '') && 
-      (board[0] == board[3]) &&
-      (board[0] == board[6])) //first column
+	if ((board[0] != '') && 
+	    (board[0] == board[3]) &&
+	    (board[0] == board[6])) //first column
         return new Array(board[0],'','',board[0],'','',board[0],'','');
-  else if ((board[1] != '') && 
-           (board[1] == board[4]) &&
-           (board[1] == board[7])) //second column
-      return new Array('',board[1],'','',board[1],'','',board[1],'');
-  else if ((board[2] != '') && 
-           (board[2] == board[5]) &&
-           (board[2] == board[8])) //third column
-    return new Array('','',board[2],'','',board[2],'','',board[2]);
+	else if ((board[1] != '') && 
+	         (board[1] == board[4]) &&
+	         (board[1] == board[7])) //second column
+	    return new Array('',board[1],'','',board[1],'','',board[1],'');
+	else if ((board[2] != '') && 
+	         (board[2] == board[5]) &&
+	         (board[2] == board[8])) //third column
+		return new Array('','',board[2],'','',board[2],'','',board[2]);
    else
         return false;
 }
@@ -470,41 +455,41 @@ function winInColumn(board) {
 //If there is a winning diagonal, it returns an array with either X or O
 //in the winning cells and blanks in the other cells
 function winDiagonal(board) {
-  if ((board[0] != '') && 
-      (board[0] == board[4]) &&
-      (board[0] == board[8])) //top left to bottom right
-     return new Array(board[0],'','','',board[0],'','','',board[0]);
-  else if ((board[2] != '') && 
-           (board[2] == board[4]) &&
-           (board[2] == board[6])) //top right to bottom left
-     return new Array('','',board[2],'',board[2],'',board[2],'','');
-  else
-       return false;
+	if ((board[0] != '') && 
+	    (board[0] == board[4]) &&
+	    (board[0] == board[8])) //top left to bottom right
+		 return new Array(board[0],'','','',board[0],'','','',board[0]);
+	else if ((board[2] != '') && 
+	         (board[2] == board[4]) &&
+	         (board[2] == board[6])) //top right to bottom left
+		 return new Array('','',board[2],'',board[2],'',board[2],'','');
+	else
+	     return false;
 }
       
 function drawStats(){
     var b = document.playspace;
-  var totalGames = xWon + oWon + tie;
+	var totalGames = xWon + oWon + tie;
     b.xWon.value = xWon;
     b.oWon.value = oWon;
     b.tie.value = tie;
-  b.xWonPer.value = ((xWon==0)?0:(Math.round(xWon * 1000 / totalGames) / 10)) + '%';
+	b.xWonPer.value = ((xWon==0)?0:(Math.round(xWon * 1000 / totalGames) / 10)) + '%';
     b.oWonPer.value = ((oWon==0)?0:(Math.round(oWon * 1000 / totalGames) / 10)) + '%';
     b.tiePer.value = ((tie==0)?0:(Math.round(tie * 1000 / totalGames) / 10)) + '%';
 }
 
 function clearStats(){
-  xWon = 0;
+	xWon = 0;
     oWon = 0;
     tie = 0;
     drawStats();
 }
 
 function winningPlayer(winningPattern) {
-  for (i=0;i<9;i++) {
-    if (winningPattern[i] != '')
-         return winningPattern[i];
-  }
+	for (i=0;i<9;i++) {
+		if (winningPattern[i] != '')
+		     return winningPattern[i];
+	}
 }
 
 //updateStats updates the statistics for winners
@@ -526,14 +511,14 @@ function updateStats(winningPattern) {
 function colorBoard(board) {
     var winningPattern = findWin(board);
     if (winningPattern) {
-       for (var i=0;i<9;i++) {
-            if (winningPattern[i] == '')
-                 spaces[i].style.backgroundColor = 'green';
-            else if (winningPattern[i] == '*')
-                 spaces[i].style.backgroundColor = 'purple';
-            else
-                 spaces[i].style.backgroundColor = 'red';
-       }
+	     for (var i=0;i<9;i++) {
+	          if (winningPattern[i] == '')
+	               spaces[i].style.backgroundColor = 'green';
+	          else if (winningPattern[i] == '*')
+	          	   spaces[i].style.backgroundColor = 'purple';
+	          else
+	               spaces[i].style.backgroundColor = 'red';
+	     }
     }
 }
 
