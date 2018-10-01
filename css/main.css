@@ -1,0 +1,39 @@
+/** Remember to add any new CSS files to your html page using a link tag **/
+/** <link rel="stylesheet" type="text/css" href="css/mycss.css"> **/
+
+/** Write your CSS rules below**/
+body {
+ color:black;
+ background-color:white;
+ font-family:Tahoma,Verdana,Helvetica,Arial,sans-serif;
+}
+.cell {
+ background-color:green;
+ color:white;
+ font-size:2cm;
+ font-family:Courier New,Courier,monospaced;
+ font-weight:bold;
+}
+input.cell {
+ border:none;
+ width:2cm;
+ vertical-align:bottom;
+}
+td.cell {
+ border:thick green outset;
+}
+.playarea { 
+ border:thin black ridge;
+ background-color:yellow;
+ margin-right:1cm;
+}
+.winstat {
+ color:black;
+ background-color:white;
+ border:none;
+}
+.player {
+ font-family:Courier New,Courier,monospaced;
+ font-weight:bold;
+ font-size:150%;
+}
