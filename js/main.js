@@ -10,6 +10,40 @@ var spaces;
 //HTML is used to draw the webpage, including a tic-tac-toe board and a statistics table
 //The tic-tac-toe board is a grid of buttons, once for each space on the board.
 //
+//
+//The tic-tac-toe board looks like this:
+//
+//    0 | 1 | 2  
+//   ---|---|--- 
+//    3 | 4 | 5  
+//   ---|---|--- 
+//    6 | 7 | 8  
+//
+//Each space on the board gets a number from 0 to 8
+//
+//
+//If we want to see the whole board, we use an array like this:
+//    ------------------------------------
+//   | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+//    ------------------------------------
+//
+//Each of the places in the array is either 'X', 'O' or ''
+//For example, if the board looks like this:
+//
+//    X |   | X  
+//   ---|---|--- 
+//      | O |    
+//   ---|---|--- 
+//      |   |    
+//
+//Then the array looks like this:
+//
+//    ------------------------------------
+//   | X |   | X |   | O |   |   |   |   |
+//    ------------------------------------
+//
+//
+//
 // Two functions to understand:
 //     - move(space) - called when the user clicks on a space in the tic-tac-toe board
 //     - takeComputerTurn - decides what move the computer will take
@@ -46,11 +80,12 @@ var spaces;
 //
 //    getRandomMove - this is the simplest strategy. It just picks a random open space
 //    getFirstMove - this is used for the first computer move
-//    getWinning Move - this looks for 2 in a row. It can look for either two Os in a row
-//                      (which is an opportunity for O to win) or 2 Xs in a row (which is
-//                      an opportunity for O to block X from winning)
+//    getWinningMove - this looks for 2 in a row. It can look for either two Os in a row
+//                     (which is an opportunity for O to win) or 2 Xs in a row (which is
+//                     an opportunity for O to block X from winning)
 //    getOppositeCornerBlock - this looks for a pattern of X-O-X on a diagonal
 //    getBlockForCornerAndSide - looks for X with a corner and a side, with O in the middle
+//    getBlockForCorners - looks for Xs on two adjacent corners
 //    
 //
 //Make a move. The parameter "space" is the space that was clicked on
