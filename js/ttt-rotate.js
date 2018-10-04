@@ -6,6 +6,8 @@ var spaces;
 //This is Javascript code to play tic-tac-toe, with a framework to make the computer
 //play intelligently
 
+//ROTATE version - this version considers patterns to be equivalent under rotation
+
 //OVERVIEW of the code:
 //HTML is used to draw the webpage, including a tic-tac-toe board and a statistics table
 //The tic-tac-toe board is a grid of buttons, once for each space on the board.
@@ -85,7 +87,7 @@ var spaces;
 //                     an opportunity for O to block X from winning)
 //    getOppositeCornerBlock - this looks for a pattern of X-O-X on a diagonal
 //    getBlockForCornerAndSide - looks for X with a corner and a side, with O in the middle
-//    getBlockForCorners - looks for Xs on two adjacent corners
+//    getBlockForCorners - looks for Xs on two sides adjacent to a corner
 //    
 //
 //Make a move. The parameter "space" is the space that was clicked on
@@ -115,16 +117,20 @@ function move(space) {
 //It looks at the skill level of the computer player
 function takeComputerTurn(board) {
    var moveTaken = -1;
-   var computerStrategy;
-   
-   computerStrategy = getComputerStrategy();
-   if (computerStrategy == "Random") 
-      moveTaken = getRandomMove(board);
-   else
-      moveTaken = makeMyMove(board);
+    if (document.playspace.p2.selectedIndex == 0) 
+         moveTaken = getRandomMove(board);
+    else if (document.playspace.p2.selectedIndex == 1)
+         moveTaken = makeMyMove(board);
     return moveTaken;
 }
 
+
+//makeSpaces makes the array of spaces that represent the board
+//
+function makeSpaces() {
+    var b = document.playspace;
+    spaces = new Array(b.c0,b.c1,b.c2,b.c3,b.c4,b.c5,b.c6,b.c7,b.c8)
+}
 
 //getRandomMove picks a random open space on the board for the computer to move
 //First, we count the number of empty spaces on the board
@@ -156,7 +162,19 @@ function getRandomMove(board) {
 function makeMyMove(board) {
    var move = -1;
    
-   move = getRandomMove(board);      //do a random move
+   move = getFirstMove(board);
+   if (move == -1)
+      move = getWinningMove(board,'O'); //check to see if O has a winning move
+   if (move == -1)                      //If not, check to see if X has a winning move
+      move = getWinningMove(board,'X'); //If so, block it (so X can't take that move)
+   if (move == -1)
+      move = getOppositeCornerBlock(board);
+   if (move == -1)
+      move = getBlockForCornerAndSide(board);
+   if (move == -1)
+      move = getBlockForCorners(board);
+   if (move == -1)
+      move = getRandomMove(board);      //Otherwise, just do a random move
    return move;
 } 
 
@@ -178,6 +196,11 @@ function findPattern(board,topleft,topcenter,topright,middleleft,middlecenter,mi
                      bottomleft,bottomcenter,bottomright) {
     var patternRA = new Array(topleft,topcenter,topright,middleleft,middlecenter,
                                middleright,bottomleft,bottomcenter,bottomright);
+    return findPatternInArray(board,patternRA);
+}
+
+//findPatternInArray is a  variant of findPattern that takes a board and an array
+function findPatternInArray(board,patternRA) {
     var match = true;          //assume the pattern matches until we find a mismatch
     for (spacePosition=0;spacePosition<9;spacePosition++) {
        if (patternRA[spacePosition] != '*' &&
@@ -185,6 +208,104 @@ function findPattern(board,topleft,topcenter,topright,middleleft,middlecenter,mi
           match = false;
     }
     return match;
+}
+
+
+//rotateBoard rotates the board 90 degrees clockwise. It returns the rotated board
+//This board:
+//    0 | 1 | 2  
+//   ---|---|--- 
+//    3 | 4 | 5  
+//   ---|---|--- 
+//    6 | 7 | 8  
+//
+//will rotate to:
+//    6 | 3 | 0  
+//   ---|---|--- 
+//    7 | 4 | 1  
+//   ---|---|--- 
+//    8 | 5 | 2  
+
+function rotateBoard(board) {
+   rotatedBoard = new Array('','','','','','','','','');
+   
+   rotatedBoard[0] = board[6];
+   rotatedBoard[1] = board[3];
+   rotatedBoard[2] = board[0];
+   rotatedBoard[3] = board[7];
+   rotatedBoard[4] = board[4]; //Center stays the same
+   rotatedBoard[5] = board[1];
+   rotatedBoard[6] = board[8];
+   rotatedBoard[7] = board[5];
+   rotatedBoard[8] = board[2];
+   return rotatedBoard;
+}
+
+//rotateSpace returns the number of the position that the space becomes after rotation
+//Because this is used to rotate the position in the pattern, not the board, we rotate
+//counterclockwise
+//For example, space 0 (topLeft) becomes space 6 (bottomLeft)
+//numTimes is the number of rotations. 1 time is 90 degrees; 2 times is 180 degrees
+//3 times is 270 degrees
+function rotateSpace(space,numRotations) {
+   var newSpace;
+   if (numRotations == 0)     //if there's no rotation, just return the original space
+      newSpace = space;
+   else {                     //rotate once
+      if (space == 0)
+         newSpace = 6;
+      else if (space == 1)
+         newSpace = 3;
+      else if (space == 2)
+         newSpace = 0;
+      else if (space == 3)
+         newSpace = 7;
+      else if (space == 4)
+         newSpace = 4; //Center stays the same
+      else if (space == 5)
+         newSpace = 1;
+      else if (space == 6)
+         newSpace = 8;
+      else if (space == 7)
+         newSpace = 5;
+      else if (space == 8)
+         newSpace = 2;
+   }
+   if (numRotations == 2)
+      newSpace = rotateSpace(newSpace,1); //rotate once more
+   else if (numRotations == 3)
+      newSpace = rotateSpace(newSpace,2); //rotate twice more
+   return newSpace;
+}
+
+//findRotatedPattern looks for the pattern and also for rotations of the pattern
+//It returns the number of rotations needed to find the pattern (0-3) or -1, if it didn't
+//find the pattern
+
+function findRotatedPattern(board,topleft,topcenter,topright,middleleft,middlecenter,middleright,
+                     bottomleft,bottomcenter,bottomright) {
+   var numRotations = -1;     
+   var patternRA = new Array(topleft,topcenter,topright,middleleft,middlecenter,
+                             middleright,bottomleft,bottomcenter,bottomright);
+
+   if (findPatternInArray(board,patternRA))    //check pattern against original board
+      numRotations = 0;
+   if (numRotations == -1) {                   //didn't find pattern yet
+      board = rotateBoard(board);              //rotate the board 90 degrees
+      if (findPatternInArray(board,patternRA)) //check 90 degree rotated board against pattern
+         numRotations = 1;
+   }
+   if (numRotations == -1) {
+      board = rotateBoard(board);              //rotate the board 90 degrees more (so now 180)
+      if (findPatternInArray(board,patternRA)) //check 180 degree rotated board against pattern
+         numRotations = 2;
+   }
+   if (numRotations == -1) {
+      board = rotateBoard(board);              //rotate the board 90 degrees more (now 270)
+      if (findPatternInArray(board,patternRA)) //check 270 degree rotated board against pattern
+         numRotations = 3;
+   }
+   return numRotations;
 }
     
 //count the number of open spaces
@@ -197,23 +318,33 @@ function countOpenSpaces(board) {
     return numOpenSpaces;
 }
 
+//isFirstComputerMove returns true if this is the first move for the computer
+//and false otherwise
+function isFirstComputerMove(board) {
+   return findPattern(board,'','','','','','','','','');
+}
+
+
 //getFirstMove is used to make the computer's first move
 //If the first player picks the center, then we'll want to pick a corner
 //If the first player picked a corner, then we take the center
+//If the first player picked a side, then we also take the center
+//No patterns match if this is not the first move
 function getFirstMove (board) {
    var moveToMake = -1;
    if (findPattern(board,'','','','','X','','','','')) { //IF just an X in the middle
       moveToMake = 0;                                    //then take the top left
    }
-   else if (findPattern(board,'X','','','','','','','','') ||  //If X took topleft
-            findPattern(board,'','','X','','','','','','') ||  //or X took topright
-            findPattern(board,'','','','','','','X','','') ||  //or X took bottomleft
-            findPattern(board,'','','','','','','','','X') ||  //or X took bottomright
-            findPattern(board,'','X','','','','','','','') ||  //If X took topcenter
-            findPattern(board,'','','','X','','','','','') ||  //or X took middleleft
-            findPattern(board,'','','','','','X','','','') ||  //or X took middleright
-            findPattern(board,'','','','','','','','X',''))    //or X took bottomcenter
-         moveToMake = 4;                 //then take the center
+   else {
+      var rotations = findRotatedPattern(board,'X','','','','','','','','');  //Matches all corners
+      if (rotations > -1)                      //If we found the pattern
+         moveToMake = 4;                       //then take the center
+      else { //didn't find a corner
+         rotations = findRotatedPattern(board,'','X','','','','','','',''); //Matches all sides
+         if (rotations > -1)
+            moveToMake = 4;
+      } 
+   }                 
    return moveToMake;
 }
 
@@ -260,11 +391,10 @@ function getSideMove(board) {
 // This will force X to take the opposite side on the next move (rather than a corner)
 function getOppositeCornerBlock(board) {
    var moveToTake = -1;
-	if (findPattern(board,'X','*','*','*','O','*','*','*','X'))
-	   moveToTake = getSideMove(board);
-	else if (findPattern(board,'*','*','X','*','O','*','X','*','*'))
-	   moveToTake = getSideMove(board);
-	return moveToTake;
+   var rotations = findRotatedPattern(board,'X','*','*','*','O','*','*','*','X'); //this will find either diagonal
+   if (rotations > -1)
+      moveToTake = getSideMove(board);
+   return moveToTake;
 }
 
 //if X has a corner and a side that is not in the corner's row or column, then O
@@ -281,23 +411,16 @@ function getOppositeCornerBlock(board) {
 
 function getBlockForCornerAndSide(board) {
    var moveToTake = -1;
+   var rotations;
    
-   if (findPattern(board,'X','*','','*','O','X','*','*','*'))
-       moveToTake = 2;
-   else if (findPattern(board,'','X','*','*','*','*','X','',''))
-       moveToTake = 0;
-   else if (findPattern(board,'*','*','*','X','*','*','','*','X'))
-       moveToTake = 6;
-   else if (findPattern(board,'*','*','X','*','*','*','*','X',''))
-       moveToTake = 8;
-   else if (findPattern(board,'','*','X','X','*','*','*','*','*'))
-       moveToTake = 0;
-   else if (findPattern(board,'*','X','','*','*','*','*','*','X'))
-       moveToTake = 2;
-   else if (findPattern(board,'*','*','*','*','*','X','X','*',''))
-       moveToTake = 8;
-   else if (findPattern(board,'X','*','*','*','*','*','','X','*'))
-       moveToTake = 6;
+   rotations = findRotatedPattern(board,'X','*','','*','O','X','*','*','*'); //check 4 patterns
+   if (rotations > -1)                          //if we found the pattern
+       moveToTake = rotateSpace(2,rotations);   //take space 2 - or rotated space 2
+   if (moveToTake == -1) {
+      rotations = findRotatedPattern(board,'X','*','*','*','O','*','','X','*'); //check 4 patterns
+      if (rotations > -1)
+         moveToTake = rotateSpace(6,rotations);
+   }
    return moveToTake;
 }
 
@@ -313,15 +436,11 @@ function getBlockForCornerAndSide(board) {
 
 function getBlockForCorners(board) {
    var moveToTake = -1;
+   var rotations;
    
-   if (findPattern(board,'','X','*','X','*','*','*','*','*'))
-       moveToTake = 0;
-   else if (findPattern(board,'*','X','','*','*','X','*','*','*'))
-       moveToTake = 2;
-   else if (findPattern(board,'*','*','*','X','*','*','','X','*'))
-       moveToTake = 6;
-   else if (findPattern(board,'*','*','*','*','*','X','*','X',''))
-       moveToTake = 8;
+   rotations = findRotatedPattern(board,'','X','*','X','*','*','*','*','*'); //check all four corners
+   if (rotations > -1)
+      moveToTake = rotateSpace(0,rotations);
    return moveToTake;
 }
 
@@ -487,11 +606,11 @@ function updateStats(winningPattern) {
     if (winningPattern) {
          winner = winningPlayer(winningPattern);
          if (winner == 'X')
-              xWon = xWon+1;
+              xWon++;
          else if (winner == 'O')
-              oWon = oWon+1;
+              oWon++;
          else if (winner == '*')
-              tie = tie+1;
+              tie++;
          drawStats();
     }     
 }
@@ -499,14 +618,14 @@ function updateStats(winningPattern) {
 //colorBoard sets the background color of the cells to indicate a win (or tie)
 function colorBoard(board) {
     var winningPattern = findWin(board);
-    if (winningPattern) {                           //If the board is a win or tie
+    if (winningPattern) {
 	     for (var i=0;i<9;i++) {
-	          if (winningPattern[i] == '')          //these are not part of the 3 in a row
-	               setSpaceColor(i,'green');        //   so color them green
-	          else if (winningPattern[i] == '*')    //A * indicates a tie
-	          	   setSpaceColor(i,'purple');       //  ties are colored purple
-	          else                                  //This is part of the three in a row
-	               setSpaceColor(i,'red');          //   so color it red
+	          if (winningPattern[i] == '')
+	               spaces[i].style.backgroundColor = 'green';
+	          else if (winningPattern[i] == '*')
+	          	   spaces[i].style.backgroundColor = 'purple';
+	          else
+	               spaces[i].style.backgroundColor = 'red';
 	     }
     }
 }
@@ -518,24 +637,3 @@ function newGame() {
        spaces[i].style.backgroundColor = 'green';
   }
 }
-
-//makeSpaces makes the array of spaces that represent the board
-//
-function makeSpaces() {
-    var b = document.playspace;
-    spaces = new Array(b.c0,b.c1,b.c2,b.c3,b.c4,b.c5,b.c6,b.c7,b.c8)
-}
-
-//getComputerStrategy looks at the menu to see which strategy was picked
-function getComputerStrategy() {
-    if (document.playspace.p2.selectedIndex == 0) 
-         return "Random";
-    else
-         return "My Algorithm"
-}
-
-//setSpaceColor sets the numbered space to the specified color
-function setSpaceColor(space,color) {
-   spaces[space].style.backgroundColor = color; //set the background color of the space
-}
-

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Tic-Tac-Toe [rotation version]</title>
+<meta name="description" content="The game of Tic-Tac-Toe written in JavaScript to be played in the web browser, with computer challengers of varying skill.">
+<meta name="keywords" content="tic-tac-toe javascript, javascript tic-tac-toe, tic-tac-toe, tictactoe, game of tic-tac-toe">
+<meta name=viewport content="width=device-width, initial-scale=1">
+
+<!-- HTML - This is the JavaScript file with the game code -->
+<script type="text/javascript" src="js/ttt-rotate.js"></script>
+
+<!-- HTML - This is the style sheet -->
+<link rel="stylesheet" type="text/css" href="css/main.css">
+
+</head>
+<body onload="makeSpaces();newGame();">
+
+<!-- message to present if Javascript is not enabled-->
+<noscript><p style="color:red;">You must enable javascript to be able to play tic-tac-toe.</p></noscript>
+<form name=playspace onsubmit="return false;"> <!-- creating a form named "playspace"-->
+<table border=0>
+<tr>
+<td valign=top>
+<table align=left class=playarea cellspacing=6>
+<tr>
+ <td class=cell><input class=cell name=c0 type=button accesskey=7 onclick="move(this);"></td>
+ <td class=cell><input class=cell name=c1 type=button accesskey=8 onclick="move(this);"></td>
+ <td class=cell><input class=cell name=c2 type=button accesskey=9 onclick="move(this);"></td>
+</tr><tr>
+ <td class=cell><input class=cell name=c3 type=button accesskey=4 onclick="move(this);"></td>
+ <td class=cell><input class=cell name=c4 type=button accesskey=5 onclick="move(this);"></td>
+ <td class=cell><input class=cell name=c5 type=button accesskey=6 onclick="move(this);"></td>
+</tr><tr>
+ <td class=cell><input class=cell name=c6 type=button accesskey=1 onclick="move(this);"></td>
+ <td class=cell><input class=cell name=c7 type=button accesskey=2 onclick="move(this);"></td>
+ <td class=cell><input class=cell name=c8 type=button accesskey=3 onclick="move(this);"></td>
+</tr>
+</table>
+</td><td valign=top>
+<h1>Tic-Tac-Toe</h1>
+<table border=1 cellpadding=3>
+<tr>
+<th>Player</th>
+<th>Type</th>
+<th>Wins</th>
+<th>Record</th>
+</tr><tr>
+<th class=player>X</th>
+<td>
+Human
+</td>
+<td align=right><input type=button name=xWon class=winstat value="0"></td>
+<td align=right><input type=button name=xWonPer class=winstat value="0%"></td>
+</tr><tr>
+<th class=player>O</th>
+<td><select name=p2 onchange="newGame();clearStats()">
+<!-- <option value=1>Human -->
+<option value=1 selected>Random
+<option value=2>My Algorithm
+</select></td>
+<td align=right><input type=button name=oWon class=winstat value="0"></td>
+<td align=right><input type=button name=oWonPer class=winstat value="0%"></td>
+</tr><tr>
+<th>Tie</th>
+<td></td>
+<td align=right><input type=button name=tie class=winstat value="0"></td>
+<td align=right><input type=button name=tiePer class=winstat value="0%"></td>
+</tr></table>
+<p></p>
+<table>
+<tr>
+<td style="width:5.5cm"><input type=button name=newgame value="New Game" accesskey=n onclick="newGame();"></td>
+<td></td>
+<td style="width:5.5cm"><input type=button name=newgame value="Clear Stats" accesskey=c onclick="clearStats();"></td>
+</tr>
+</table>
+</td></tr></table>
+</form>
+<br><br><br><br><br><br>
+<h4>License</h4>
+
+<span style='font-size: 9pt;'>
+<p>This program is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2 of the License, or (at your option)
+any later version.</p>
+
+<p>This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE. See the
+<a href="http://www.gnu.org/copyleft/gpl.html">GNU
+General Public License</a> for more details.</p>
+</span>
+
+</body>
+</html>
+
