@@ -85,7 +85,7 @@ var spaces;
 //                     an opportunity for O to block X from winning)
 //    getOppositeCornerBlock - this looks for a pattern of X-O-X on a diagonal
 //    getBlockForCornerAndSide - looks for X with a corner and a side, with O in the middle
-//    getBlockForCorners - looks for Xs on two adjacent corners
+//    getBlockForSides - looks for Xs on two sides around a corner
 //    
 //
 //Make a move. The parameter "space" is the space that was clicked on
@@ -138,19 +138,20 @@ function getRandomMove(board) {
     var nthOpen= Math.floor(Math.random()*numOpenSpaces); //get a random number up to the number of open spaces
     var openSpaceCounter = 0;                                     
 
-    for (var i=0;i<9;i++) {                        //for each of the 9 spaces on the board
-         if ((board[i] == '') &&                   //if the space is empty
+    board.forEach(
+       function(space,spaceNum) {       //for each of the 9 spaces on the board
+         if ((space == '') &&                      //if the space is empty
              (nthOpen == openSpaceCounter)) {         //and this is the nth open space
-              moveToTake = i;                         //set this as the move to make
-              openSpaceCounter = openSpaceCounter+1;  //and increment the open space count
+              moveToTake = spaceNum;                     //set this as the move to make
+              openSpaceCounter = openSpaceCounter+1;     //and increment the open space count
          }
-         else if (board[i] == '') {                //if this is an open space
+         else if (space == '') {                   //if this is an open space (but not the nth)
               openSpaceCounter = openSpaceCounter+1;  //increment the open space counter
          }
-    }
+       })
     return moveToTake;
-}    
-     
+}
+       
 //makeMyMove is the function that you will modify to make the computer smarter
 //It starts by just making a random move
 function makeMyMove(board) {
@@ -179,21 +180,23 @@ function findPattern(board,topleft,topcenter,topright,middleleft,middlecenter,mi
     var patternRA = new Array(topleft,topcenter,topright,middleleft,middlecenter,
                                middleright,bottomleft,bottomcenter,bottomright);
     var match = true;          //assume the pattern matches until we find a mismatch
-    for (spacePosition=0;spacePosition<9;spacePosition++) {
-       if (patternRA[spacePosition] != '*' &&
-           patternRA[spacePosition] != board[spacePosition])
-          match = false;
-    }
+    patternRA.forEach(
+       function(space,spacePosition) {
+          if (space != '*' &&
+              space != board[spacePosition])
+             match = false;
+       })
     return match;
 }
     
 //count the number of open spaces
 function countOpenSpaces(board) {
 	var numOpenSpaces = 0;
-    for (var i=0;i<9;i++) {
-         if (board[i] == '')
+	board.forEach(
+	   function(space) {
+         if (space == '')
               numOpenSpaces = numOpenSpaces+1;
-    }
+       })
     return numOpenSpaces;
 }
 
@@ -291,13 +294,13 @@ function getBlockForCornerAndSide(board) {
    else if (findPattern(board,'*','*','X','*','*','*','*','X',''))
        moveToTake = 8;
    else if (findPattern(board,'','*','X','X','*','*','*','*','*'))
-       moveToTake = 0;
+       moveToTake = -1;  //PUT THE CORRECT MOVE HERE
    else if (findPattern(board,'*','X','','*','*','*','*','*','X'))
-       moveToTake = 2;
+       moveToTake = -1;  //PUT THE CORRECT MOVE HERE
    else if (findPattern(board,'*','*','*','*','*','X','X','*',''))
-       moveToTake = 8;
+       moveToTake = -1;  //PUT THE CORRECT MOVE HERE
    else if (findPattern(board,'X','*','*','*','*','*','','X','*'))
-       moveToTake = 6;
+       moveToTake = -1;  //PUT THE CORRECT MOVE HERE
    return moveToTake;
 }
 
@@ -311,7 +314,7 @@ function getBlockForCornerAndSide(board) {
 //  -------------
 // Then O should move in position 6
 
-function getBlockForCorners(board) {
+function getBlockForSides(board) {
    var moveToTake = -1;
    
    if (findPattern(board,'','X','*','X','*','*','*','*','*'))
@@ -320,7 +323,7 @@ function getBlockForCorners(board) {
        moveToTake = 2;
    else if (findPattern(board,'*','*','*','X','*','*','','X','*'))
        moveToTake = 6;
-   else if (findPattern(board,'*','*','*','*','*','X','*','X',''))
+   else if (findPattern(board,'?','?','?','?','?','?','?','?','?')) //FIX THIS PATTERN
        moveToTake = 8;
    return moveToTake;
 }
@@ -475,10 +478,14 @@ function clearStats(){
 }
 
 function winningPlayer(winningPattern) {
-	for (i=0;i<9;i++) {
-		if (winningPattern[i] != '')
-		     return winningPattern[i];
-	}
+   var winner = '';
+   
+   winningPattern.forEach(
+      function(space) {
+		if (space != '')
+		     winner = space;
+	})
+	return winner;
 }
 
 //updateStats updates the statistics for winners
@@ -500,23 +507,25 @@ function updateStats(winningPattern) {
 function colorBoard(board) {
     var winningPattern = findWin(board);
     if (winningPattern) {                           //If the board is a win or tie
-	     for (var i=0;i<9;i++) {
-	          if (winningPattern[i] == '')          //these are not part of the 3 in a row
-	               setSpaceColor(i,'green');        //   so color them green
-	          else if (winningPattern[i] == '*')    //A * indicates a tie
-	          	   setSpaceColor(i,'purple');       //  ties are colored purple
+       winningPattern.forEach(
+          function(space,spacePosition) {
+	          if (space == '')                      //space blank - not part of the 3 in a row
+	             setSpaceColor(spacePosition,'green');  //   so color them green
+	          else if (space == '*')                // * indicates a tie
+	          	   setSpaceColor(spacePosition,'purple'); //  ties are colored purple
 	          else                                  //This is part of the three in a row
-	               setSpaceColor(i,'red');          //   so color it red
-	     }
+	               setSpaceColor(spacePosition,'red'); //   so color it red
+	      })
     }
 }
 
 //to start a newGame, clear the board and set the spaces to be green
 function newGame() {
-  for (var i=0;i<9;i++) {
-       spaces[i].value = '';
-       spaces[i].style.backgroundColor = 'green';
-  }
+   spaces.forEach(
+      function(space) {
+         space.value = '';
+         space.style.backgroundColor = 'green';
+  })
 }
 
 //makeSpaces makes the array of spaces that represent the board
