@@ -2,6 +2,7 @@ var xWon = 0;
 var oWon = 0;
 var tie = 0;
 var spaces;
+var gameInProgress=false;
 
 //This is Javascript code to play tic-tac-toe, with a framework to make the computer
 //play intelligently
@@ -90,7 +91,8 @@ var spaces;
 //
 //Make a move. The parameter "space" is the space that was clicked on
 function move(space) {
-    if (space.value == '') {                //check to see that the cell is empty first
+    if (space.value == '' &&                //check to see that the cell is empty
+        gameInProgress == true) {           //and a game is in progress     
     	space.value = 'X';                  //set the cell to X (in the visible board)
     	//create an array of the current board
         var board = new Array(spaces[0].value,spaces[1].value,spaces[2].value,
@@ -106,8 +108,10 @@ function move(space) {
             winningPattern = findWin(board);          //check if the computer won
         	colorBoard(board);                        //and draw the board again
         }
-        if (winningPattern)
+        if (winningPattern) {
         	updateStats(winningPattern);
+        	gameInProgress=false;
+        }
     }
 }
 
@@ -157,7 +161,15 @@ function getRandomMove(board) {
 function makeMyMove(board) {
    var move = -1;
    
-   move = getRandomMove(board);      //do a random move
+   move = getFirstMove(board);
+   if (move == -1)
+      move = getWinningMove(board,'O');
+   if (move == -1)
+      move = getWinningMove(board,'X');
+   if  (move == -1)
+      move = getOppositeCornerBlock(board);
+  if (move == -1)
+      move = getRandomMove(board);
    return move;
 } 
 
@@ -526,6 +538,7 @@ function newGame() {
          space.value = '';
          space.style.backgroundColor = 'green';
   })
+  gameInProgress = true;
 }
 
 //makeSpaces makes the array of spaces that represent the board
