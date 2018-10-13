@@ -37,3 +37,32 @@ td.cell {
  font-weight:bold;
  font-size:150%;
 }
+.debugScroll {
+  overflow: auto;
+  background-color: lightblue;
+  width: 500px;
+  height: 600px;
+  display: none;
+  border: 2px
+}
+.nomatch {
+   color:red;
+}
+
+.matched {
+   color:green;
+   font-weight:bold;
+}
+.unmatchedPattern {
+   font-family:Courier New,Courier,monospaced;
+   color:red;
+}
+
+.matchedPattern {
+   font-family:Courier New,Courier,monospaced;
+   color:green;
+}
+.turnHeader {
+   font-weight:bold;
+}
+

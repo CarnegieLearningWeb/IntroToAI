@@ -76,7 +76,22 @@ Human
 </table>
 </td></tr></table>
 </form>
-<br><br><br><br><br><br>
+<br><br><br>
+<label>Debug patterns:</label>
+<label class="switch">
+  <input type="checkbox" onclick="toggleDebug(this,&quot;patterns&quot;);">
+  <span class="slider round"></span>
+</label>
+<br>
+<label>Debug strategies:</label>
+<label class="switch">
+  <input type="checkbox" onclick="toggleDebug(this,&quot;strategies&quot;);">
+  <span class="slider round"></span>
+</label>
+
+<div id="debugArea" class="debugScroll">
+</div>
+<br><br><br>
 <h4>License</h4>
 
 <span style='font-size: 9pt;'>
