@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Tic-Tac-Toe [rotation version]</title>
+<title>Tic-Tac-Toe</title>
 <meta name="description" content="The game of Tic-Tac-Toe written in JavaScript to be played in the web browser, with computer challengers of varying skill.">
 <meta name="keywords" content="tic-tac-toe javascript, javascript tic-tac-toe, tic-tac-toe, tictactoe, game of tic-tac-toe">
 <meta name=viewport content="width=device-width, initial-scale=1">
@@ -57,6 +57,7 @@ Human
 <!-- <option value=1>Human -->
 <option value=1 selected>Random
 <option value=2>My Algorithm
+<option value=3>Learn
 </select></td>
 <td align=right><input type=button name=oWon class=winstat value="0"></td>
 <td align=right><input type=button name=oWonPer class=winstat value="0%"></td>
@@ -76,7 +77,22 @@ Human
 </table>
 </td></tr></table>
 </form>
-<br><br><br><br><br><br>
+<br><br><br>
+<label>Debug patterns:</label>
+<label class="switch">
+  <input type="checkbox" onclick="toggleDebug(this,&quot;patterns&quot;);">
+  <span class="slider round"></span>
+</label>
+<br>
+<label>Debug strategies:</label>
+<label class="switch">
+  <input type="checkbox" onclick="toggleDebug(this,&quot;strategies&quot;);">
+  <span class="slider round"></span>
+</label>
+
+<div id="debugArea" class="debugScroll">
+</div>
+<br><br><br>
 <h4>License</h4>
 
 <span style='font-size: 9pt;'>

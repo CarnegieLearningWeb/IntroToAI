@@ -2,6 +2,15 @@ var xWon = 0;
 var oWon = 0;
 var tie = 0;
 var spaces;
+var gameInProgress=false;
+var debugArea;
+var debugStrategies=false;
+var debugPatterns=false;
+var turnNumber=0;
+
+//memory stuff
+var gameMemory = [];
+var longTermMemory = [];
 
 //This is Javascript code to play tic-tac-toe, with a framework to make the computer
 //play intelligently
@@ -108,8 +117,9 @@ function move(space) {
             winningPattern = findWin(board);          //check if the computer won
         	colorBoard(board);                        //and draw the board again
         }
-        if (winningPattern)
-        	updateStats(winningPattern);
+        if (winningPattern) {
+           endOfGameUpdate(winningPattern);
+        }
     }
 }
 
@@ -119,11 +129,15 @@ function takeComputerTurn(board) {
    var moveTaken = -1;
    var computerStrategy;
 
+   turnNumber = turnNumber+1;
+   debugTurnNumber(turnNumber);
    computerStrategy = getComputerStrategy();
    if (computerStrategy == "Random") 
       moveTaken = getRandomMove(board);
-   else
+   else if (computerStrategy == "My Algorithm")
       moveTaken = makeMyMove(board);
+   else if (computerStrategy == "Learn")
+      moveTaken = learnToPlay(board);
    return moveTaken;
 }
 
@@ -132,6 +146,8 @@ function takeComputerTurn(board) {
 //
 function makeSpaces() {
     var b = document.playspace;
+
+    debugArea = document.getElementById("debugArea");
     spaces = new Array(b.c0,b.c1,b.c2,b.c3,b.c4,b.c5,b.c6,b.c7,b.c8)
 }
 
@@ -141,24 +157,26 @@ function makeSpaces() {
 //Then, we set that numbered empty space to the letter O
 
 function getRandomMove(board) {
-   var moveToTake = -1;
+   var moveToMake = -1;
    
-    var numOpenSpaces = countOpenSpaces(board);           //count the number of open spaces
-    var nthOpen= Math.floor(Math.random()*numOpenSpaces); //get a random number up to the number of open spaces
-    var openSpaceCounter = 0;                                     
+   debugStrategyTop("getRandomMove");   //print debugging for this strategy
+   var numOpenSpaces = countOpenSpaces(board);           //count the number of open spaces
+   var nthOpen= Math.floor(Math.random()*numOpenSpaces); //get a random number up to the number of open spaces
+   var openSpaceCounter = 0;                                     
 
-    board.forEach(
+   board.forEach(
        function(space,spaceNum) {       //for each of the 9 spaces on the board
          if ((space == '') &&                      //if the space is empty
              (nthOpen == openSpaceCounter)) {         //and this is the nth open space
-              moveToTake = spaceNum;                     //set this as the move to make
+              moveToMake = spaceNum;                     //set this as the move to make
               openSpaceCounter = openSpaceCounter+1;     //and increment the open space count
          }
          else if (space == '') {                   //if this is an open space (but not the nth)
               openSpaceCounter = openSpaceCounter+1;  //increment the open space counter
          }
        })
-    return moveToTake;
+   debugStrategy("getRandomMove",moveToMake);   //print debugging for this strategy
+   return moveToMake;
 }
      
 //makeMyMove is the function that you will modify to make the computer smarter
@@ -178,9 +196,32 @@ function makeMyMove(board) {
    if (move == -1)
       move = getBlockForSides(board);
    if (move == -1)
-      move = getRandomMove(board);      //Otherwise, just do a random move
+      getRandomMove(board);   //Remember how those random moves work out
    return move;
 } 
+
+//learnToPlay is the learning algorithm
+function learnToPlay(board) {
+   var move = -1;
+
+   move = getFirstMove(board);
+   if (move == -1)
+      move = getWinningMove(board,'O'); //check to see if O has a winning move
+   if (move == -1)                      //If not, check to see if X has a winning move
+      move = getWinningMove(board,'X'); //If so, block it (so X can't take that move)
+//   if (move == -1)
+//      move = getOppositeCornerBlock(board);
+   if (move == -1)
+      move = getBlockForCornerAndSide(board);
+   if (move == -1)
+      move = getBlockForSides(board);
+   if (move == -1) {
+      move = getRandomMove(board);          //Otherwise, just do a random move
+      saveBoardAndMove(board,move);         //Remember how those random moves work out
+   }
+   return move;
+}   
+ 
 
 //findPattern takes a board and nine strings. If the board matches the pattern, then
 //it returns true. Otherwise, it returns false.
@@ -212,6 +253,7 @@ function findPatternInArray(board,patternRA) {
               space != board[spacePosition])
              match = false;
     })
+    debugPattern(board,patternRA,match);
     return match;
 }
 
@@ -338,6 +380,7 @@ function isFirstComputerMove(board) {
 //No patterns match if this is not the first move
 function getFirstMove (board) {
    var moveToMake = -1;
+   debugStrategyTop("getFirstMove");  //print debugging for this strategy
    if (findPattern(board,'','','','','X','','','','')) { //IF just an X in the middle
       moveToMake = 0;                                    //then take the top left
    }
@@ -351,6 +394,7 @@ function getFirstMove (board) {
             moveToMake = 4;
       } 
    }                 
+   debugStrategy("getFirstMove",moveToMake); //print debugging for this strategy
    return moveToMake;
 }
 
@@ -396,11 +440,13 @@ function getSideMove(board) {
 // Then O should take one of the side moves (either 1, 3, 5 or 7).
 // This will force X to take the opposite side on the next move (rather than a corner)
 function getOppositeCornerBlock(board) {
-   var moveToTake = -1;
+   var moveToMake = -1;
+   debugStrategyTop("getOppositeCornerBlock");   //print debugging for this strategy
    var rotations = findRotatedPattern(board,'X','*','*','*','O','*','*','*','X'); //this will find either diagonal
    if (rotations > -1)
-      moveToTake = getSideMove(board);
-   return moveToTake;
+      moveToMake = getSideMove(board);
+   debugStrategy("getOppositeCornerBlock",moveToMake);
+   return moveToMake;
 }
 
 //if X has a corner and a side that is not in the corner's row or column, then O
@@ -416,18 +462,20 @@ function getOppositeCornerBlock(board) {
 // Then O should move in position 2
 
 function getBlockForCornerAndSide(board) {
-   var moveToTake = -1;
+   var moveToMake = -1;
    var rotations;
    
+   debugStrategyTop("getBlockForCornerAndSide");   //print debugging for this strategy   
    rotations = findRotatedPattern(board,'X','*','','*','O','X','*','*','*'); //check 4 patterns
    if (rotations > -1)                          //if we found the pattern
-       moveToTake = rotateSpace(2,rotations);   //take space 2 - or rotated space 2
-   if (moveToTake == -1) {
+       moveToMake = rotateSpace(2,rotations);   //take space 2 - or rotated space 2
+   if (moveToMake == -1) {
       rotations = findRotatedPattern(board,'X','*','*','*','O','*','','X','*'); //check 4 patterns
       if (rotations > -1)
-         moveToTake = rotateSpace(6,rotations);
+         moveToMake = rotateSpace(6,rotations);
    }
-   return moveToTake;
+   debugStrategy("getBlockForCornerAndSide",moveToMake);
+   return moveToMake;
 }
 
 //if X has 2 sides around a corner, take the corner
@@ -441,36 +489,41 @@ function getBlockForCornerAndSide(board) {
 // Then O should move in position 6
 
 function getBlockForSides(board) {
-   var moveToTake = -1;
+   var moveToMake = -1;
    var rotations;
    
+   debugStrategyTop("getBlockForSides");   //print debugging for this strategy   
    rotations = findRotatedPattern(board,'','X','*','X','*','*','*','*','*'); //check all four corners
    if (rotations > -1)
-      moveToTake = rotateSpace(0,rotations);
-   return moveToTake;
+      moveToMake = rotateSpace(0,rotations);
+   debugStrategy("getBlockForSides",moveToMake);
+   return moveToMake;
 }
 
 //getWinningMove returns a move that will win the game for the specified player (X or O)
 //if no such move exists, then return -1
 //There are 8 ways to win: 3 rows, 3 columns and 2 diagonals
 function getWinningMove(board,player) {
-   var move = -1;
-   move = checkForThirdInARow(0,1,2,board,player); //check for win in top row
-   if (move == -1)
-      move = checkForThirdInARow(3,4,5,board,player); //check for win in second row
-   if (move == -1)
-      move = checkForThirdInARow(6,7,8,board,player); //check for win in third row
-   if (move == -1)
-      move = checkForThirdInARow(0,3,6,board,player); //check for win in first column
-   if (move == -1)
-      move = checkForThirdInARow(1,4,7,board,player); //check for win in second column
-   if (move == -1)
-      move = checkForThirdInARow(2,5,8,board,player); //check for win in third column
-   if (move == -1)
-      move = checkForThirdInARow(0,4,8,board,player); //check for win in first diagonal
-   if (move == -1)
-      move = checkForThirdInARow(2,4,6,board,player); //check for win in first diagonal
-   return move;
+   var moveToMake = -1;
+
+   debugStrategyTop("getWinningMove "+player);   //print debugging for this strategy   
+   moveToMake = checkForThirdInARow(0,1,2,board,player); //check for win in top row
+   if (moveToMake == -1)
+      moveToMake = checkForThirdInARow(3,4,5,board,player); //check for win in second row
+   if (moveToMake == -1)
+      moveToMake = checkForThirdInARow(6,7,8,board,player); //check for win in third row
+   if (moveToMake == -1)
+      moveToMake = checkForThirdInARow(0,3,6,board,player); //check for win in first column
+   if (moveToMake == -1)
+      moveToMake = checkForThirdInARow(1,4,7,board,player); //check for win in second column
+   if (moveToMake == -1)
+      moveToMake = checkForThirdInARow(2,5,8,board,player); //check for win in third column
+   if (moveToMake == -1)
+      moveToMake = checkForThirdInARow(0,4,8,board,player); //check for win in first diagonal
+   if (moveToMake == -1)
+      moveToMake = checkForThirdInARow(2,4,6,board,player); //check for win in first diagonal
+   debugStrategy("getWinningMove "+player+" ",moveToMake);
+   return moveToMake;
 }
 
 //checkForThirdInARow takes three board positions, which should be a row, column or diagonal.
@@ -648,14 +701,20 @@ function newGame() {
          space.value = '';
          space.style.backgroundColor = 'green';
   })
+  clearDebugging();
+  turnNumber = 0;
+  gameInProgress = true;
+  clearGameMemory();
 }
 
 //getComputerStrategy looks at the menu to see which strategy was picked
 function getComputerStrategy() {
     if (document.playspace.p2.selectedIndex == 0) 
          return "Random";
+    else if (document.playspace.p2.selectedIndex == 1)
+         return "My Algorithm";
     else
-         return "My Algorithm"
+         return "Learn";
 }
 
 //setSpaceColor sets the numbered space to the specified color
@@ -663,3 +722,190 @@ function setSpaceColor(space,color) {
    spaces[space].style.backgroundColor = color; //set the background color of the space
 }
 
+//Debugging functions
+//Functions in this section control the debugging display
+
+//toggleDebug hides or reveals the debugging window
+function toggleDebug(checkbox,label) {
+   if (label == "patterns")
+      debugPatterns = !debugPatterns;
+   else if (label == "strategies")
+      debugStrategies = !debugStrategies;
+   if (debugPatterns || debugStrategies)
+      debugArea.style.display = "block";
+   else
+      debugArea.style.display = "none";
+}
+
+//debugTurnNumber prints out the number of the turn that the computer is taking
+function debugTurnNumber(turnNumber) {
+   addDebugLine("<span class=turnHeader>Computer turn "+turnNumber+"</span>");
+}
+
+//debugPattern prints out the board and pattern
+function debugPattern(board,pattern,match) {
+   var boardString;
+   var patternString;
+   var spanStart;
+      
+   if (debugPatterns) {
+      boardString = getBoardString(board);
+      patternString = getBoardString(pattern);
+      if (match) {
+         spanStart = "<span class=matchedPattern>";
+      }
+      else {
+         spanStart = "<span class=unmatchedPattern>";
+      }
+      addDebugLine("Board:&nbsp;&nbsp;&nbsp;" + spanStart+boardString + "</span><br>Pattern:&nbsp;" +
+                   spanStart+patternString+"</span><br>");
+   }
+}
+
+//debugTwoOfThreePattern prints out the pattern for a 2-of-3 (getWinningMove) 
+function debugTwoOfThreePattern(board,pos1,pos2,pos3,player,match) {
+   var boardString;
+   var patternArray;
+   var patternString;
+   var spanStart;
+
+   if (debugPatterns) {
+      boardString = getBoardString(board);
+      patternArray = new Array('','','','','','','','','');
+      patternArray[pos1] = player;
+      patternArray[pos2] = player;
+      patternArray[pos3] = player;
+      patternString = getBoardString(patternArray);
+      if (match) {
+         spanStart = "<span class=matchedPattern>";
+      }
+      else {
+         spanStart = "<span class=unmatchedPattern>";
+      }
+      addDebugLine("Board:&nbsp;&nbsp;&nbsp;" + spanStart+boardString + "</span><br>Pattern:&nbsp;" +
+                   spanStart+patternString+" (2 of 3)</span><br>");
+   }
+}  
+
+//debugStrategyTop prints out the beginning of a strategy that is being considered
+function debugStrategyTop(strategy) {
+   if (debugStrategies) {
+      addDebugLine("<br>Testing strategy: <i>"+strategy+"</i>");
+   }
+}
+
+//debugStrategy prints out the result of applying the strategy
+function debugStrategy(strategy,result) {
+   var resultString;
+   
+   if (debugStrategies) {
+      if (result == -1)
+         addDebugLine("<span class=nomatch><i>"+strategy+"</i>: "+"pattern not found (-1)</span><br>");
+      else
+         addDebugLine("<span class=matched><i>"+strategy+"</i> "+"found move "+result+"</span><br>");
+   }
+}
+
+//getBoardString turns the board array (or pattern array) into a string
+function getBoardString(board) {
+   var boardString = "";
+   board.forEach (
+      function(character) {
+         if (character == '')
+            boardString = boardString+"_";
+         else
+            boardString = boardString+character;
+      })
+   return boardString;
+}
+      
+//addDebugLine prints a line out to the debugging area
+function addDebugLine(string) {
+   if (debugArea.innerHTML == "")
+      debugArea.innerHTML = string;
+   else
+      debugArea.innerHTML = debugArea.innerHTML + "<br>" + string;
+}
+
+//clearDebugging removes all the text from the debugging area
+function clearDebugging() {
+   debugArea.innerHTML = "";
+}
+
+//MEMORY SYSTEM
+
+function endOfGameUpdate(winningPattern) {
+   var winner = winningPlayer(winningPattern);
+   var outcome;
+   
+   updateStats(winningPattern);
+   if (winner == 'X')
+      outcome = 0;
+   else if (winner == 'O')
+      outcome = 2;
+   else
+      outcome = 1;
+   rememberGame(outcome);
+   dumpGameMemory();
+}
+
+function saveBoardAndMove(board,move) {
+   gameMemory.push({board: board.slice(0), move: move});
+}
+
+function boardsEqual(board1,board2) {
+   var equal = true;
+   
+   for (i=0;i<9;++i) {
+      if (board1[i] != board2[i])
+         equal = false;
+   }
+   return equal;
+}
+
+function dumpGameMemory() {
+   addDebugLine("Short term:");
+   gameMemory.forEach (
+      function(game) {
+         var boardString = getBoardString(game.board);
+         addDebugLine("Board: <span class=neutralPattern>"+boardString+"</span> Move: "+game.move);
+      })
+   addDebugLine("Long term:");
+   longTermMemory.forEach (
+      function(boardAndOutcome) {
+         addDebugLine("Board: <span class=neutralPattern>"+
+            getBoardString(boardAndOutcome.board)+"</span> Move: "+boardAndOutcome.move+
+            " Wins: "+boardAndOutcome.outcomes[2]+" Losses: "+
+            boardAndOutcome.outcomes[0]+" Ties: "+boardAndOutcome.outcomes[1]);
+      })
+}
+
+function clearGameMemory() {
+   gameMemory = new Array();
+}
+
+//rememberGame commits the game memory to long term memory
+//Outcome is either 0 (loss), 1 (tie) or 2 (win)
+function rememberGame(outcome) {
+   var foundBoard=false;
+   
+   gameMemory.forEach (
+      function(game) {
+         longTermMemory.forEach (
+            function(boardAndOutcome) {
+               if (boardsEqual(game.board,boardAndOutcome.board) &&
+                               game.move == boardAndOutcome.move) {
+                  boardAndOutcome.outcomes[outcome]++;
+                  foundBoard = true;
+               }
+            })
+         if (foundBoard == false) {
+            var outcomeArray = [0,0,0];
+            outcomeArray[outcome]++;
+            longTermMemory.push({board: game.board, move: game.move, outcomes:outcomeArray});
+         }
+         foundBoard = false;
+      })
+}
+
+   

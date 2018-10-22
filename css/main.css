@@ -62,6 +62,11 @@ td.cell {
    font-family:Courier New,Courier,monospaced;
    color:green;
 }
+.neutralPattern {
+   font-family:Courier New,Courier,monospaced;
+   color:black;
+}
+
 .turnHeader {
    font-weight:bold;
 }

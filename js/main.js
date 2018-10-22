@@ -1,7 +1,7 @@
 var xWon = 0;
 var oWon = 0;
 var tie = 0;
-var spaces;
+var spaces = [];
 var gameInProgress=false;
 var debugArea;
 var debugStrategies=false;
@@ -547,6 +547,8 @@ function colorBoard(board) {
 
 //to start a newGame, clear the board and set the spaces to be green
 function newGame() {
+   if (spaces.length == 0)
+      makeSpaces();
    spaces.forEach(
       function(space) {
          space.value = '';
