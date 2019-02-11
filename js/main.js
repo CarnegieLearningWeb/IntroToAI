@@ -1,4 +1,4 @@
-var xWon = 0;
+var xWon = 5;
 var oWon = 0;
 var tie = 0;
 var spaces = [];

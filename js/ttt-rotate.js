@@ -196,7 +196,7 @@ function makeMyMove(board) {
    if (move == -1)
       move = getBlockForSides(board);
    if (move == -1)
-      getRandomMove(board);   //Remember how those random moves work out
+      getRandomMove(board);
    return move;
 } 
 
@@ -204,6 +204,8 @@ function makeMyMove(board) {
 function learnToPlay(board) {
    var move = -1;
 
+   displayKnowledge(board); //show what I know
+   
    move = getFirstMove(board);
    if (move == -1)
       move = getWinningMove(board,'O'); //check to see if O has a winning move
@@ -211,17 +213,16 @@ function learnToPlay(board) {
       move = getWinningMove(board,'X'); //If so, block it (so X can't take that move)
 //   if (move == -1)
 //      move = getOppositeCornerBlock(board);
-   if (move == -1)
-      move = getBlockForCornerAndSide(board);
-   if (move == -1)
-      move = getBlockForSides(board);
+//   if (move == -1)
+//      move = getBlockForCornerAndSide(board);
+//   if (move == -1)
+//      move = getBlockForSides(board);
    if (move == -1) {
       move = getRandomMove(board);          //Otherwise, just do a random move
       saveBoardAndMove(board,move);         //Remember how those random moves work out
    }
    return move;
-}   
- 
+}
 
 //findPattern takes a board and nine strings. If the board matches the pattern, then
 //it returns true. Otherwise, it returns false.
@@ -818,6 +819,21 @@ function getBoardString(board) {
       })
    return boardString;
 }
+
+//getBoard2DString returns the board as a 2D string
+function getBoard2DString(board) {
+  var boardString = "";
+  board.forEach (
+     function(character,charpos) {
+        if (character == '')
+           boardString = boardString + " _ ";
+        else
+           boardString = boardString + " " + character + " ";
+        if ((charpos+1) % 3 == 0)
+           boardString = boardString+"<br>";
+      })
+   return boardString;
+}
       
 //addDebugLine prints a line out to the debugging area
 function addDebugLine(string) {
@@ -879,6 +895,51 @@ function dumpGameMemory() {
             boardAndOutcome.outcomes[0]+" Ties: "+boardAndOutcome.outcomes[1]);
       })
 }
+
+function findBoardInLongTermMemory(board) {
+   var boardsFound = [];
+   
+   longTermMemory.forEach (
+      function(boardAndOutcome) {
+         if (boardsEqual(board,boardAndOutcome.board)) {
+            boardsFound.push(boardAndOutcome);
+         }
+    })
+    return boardsFound;
+}
+
+function displayKnowledge(board) {
+   var boardMemory;
+   var outputString = "";
+   var boardString = getBoard2DString(board);
+   dumpGameMemory(); //for debugging - show full memory
+   
+   boardMemory = findBoardInLongTermMemory(board);
+   
+   if (boardMemory.length > 0) {
+      outputString = "I have seen this board before:<br><br>" + boardString +
+      "<table class=learnTable><tr><td class=learnTable><b>Move</b></td>"+
+      "<td class=learnTable><b>Wins</b></td><td class=learnTable><b>Losses</b></td>"+
+      "<td class=learnTable><b>Ties</b></td></tr><br><br>";  
+   }
+   else
+      outputString = "This is the first time I have seen board: <br>"+boardString + "<br>";
+   boardMemory.forEach (
+      function(boardAndOutcome) {
+         outputString = outputString + "<tr><td class=learnTable>" + boardAndOutcome.move + "</td>" +
+         "<td class=learnTable>" + boardAndOutcome.outcomes[2] + "</td>" +
+         "<td class=learnTable>" + boardAndOutcome.outcomes[0] + "</td>" +
+         "<td class=learnTable>" + boardAndOutcome.outcomes[1] + "</td></tr>";
+      }
+   )
+   if (boardMemory.length > 0) {
+      outputString = outputString + "</table>";
+      alert("Click to continue");
+   }
+   var knowledgeArea = document.getElementById("learnArea");
+   knowledgeArea.innerHTML = outputString;
+}
+
 
 function clearGameMemory() {
    gameMemory = new Array();

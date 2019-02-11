@@ -45,6 +45,23 @@ td.cell {
   display: none;
   border: 2px
 }
+.learnScroll {
+  overflow: auto;
+  background-color: lightyellow;
+  width: 500px;
+  height: 300px;
+  display: block;
+  border: 2px
+}
+.learnTable {
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+td.learnTable {
+  border: 1px solid black;
+  text-align: center;
+  width: 50px;
+}
 .nomatch {
    color:red;
 }
